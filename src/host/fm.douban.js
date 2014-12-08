@@ -15,7 +15,14 @@
 			.attr ('id', 'jx_douban_dl_wrap')
 			.append(linkDownload)
 			.insertAfter('.player-wrap');
-		
+        
+		$('a#jx_douban_dl').hover( function() {
+			var filename = $(this).attr('title').slice(4)+'.mp3';
+			filename = filename.replace(/\:/g,' -');
+			filename = filename.replace(/\\|\/|\*|\?|\"|\<|\>|\|/g, '');
+			GM_setClipboard(filename);
+		});
+         		
 		H.log ('等待豆瓣电台加载 ..');
 		
 		H.waitUntil('extStatusHandler', function () {

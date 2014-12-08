@@ -5,6 +5,7 @@
 // @grant          GM_registerMenuCommand
 // @grant          GM_getValue
 // @grant          GM_setValue
+// @grant          GM_setClipboard
 // @grant          GM_info
 
 // @run-at         document-start
@@ -42,7 +43,7 @@
 
 // @author         Jixun.Moe<Yellow Yoshi>
 // @namespace      http://jixun.org/
-// @version        3.0.350
+// @version        3.0.357
 
 // 全局匹配
 // @include *
@@ -2345,7 +2346,14 @@ div#jx_douban_dl_wrap {
 			.attr ('id', 'jx_douban_dl_wrap')
 			.append(linkDownload)
 			.insertAfter('.player-wrap');
-		
+        
+		$('a#jx_douban_dl').hover( function() {
+			var filename = $(this).attr('title').slice(4)+'.mp3';
+			filename = filename.replace(/\:/g,' -');
+			filename = filename.replace(/\\|\/|\*|\?|\"|\<|\>|\|/g, '');
+			GM_setClipboard(filename);
+		});
+         		
 		H.log ('等待豆瓣电台加载 ..');
 		
 		H.waitUntil('extStatusHandler', function () {
@@ -2369,7 +2377,8 @@ div#jx_douban_dl_wrap {
 			
 		});
 	}
-},
+}
+,
 /* Compiled from fm.jing.js */
 {
 	name: 'Jing.fm',

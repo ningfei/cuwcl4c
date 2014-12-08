@@ -5,6 +5,7 @@
 // @grant          GM_registerMenuCommand
 // @grant          GM_getValue
 // @grant          GM_setValue
+// @grant          GM_setClipboard
 // @grant          GM_info
 
 // @run-at         document-start
