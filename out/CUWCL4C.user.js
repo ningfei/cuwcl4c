@@ -43,7 +43,7 @@
 
 // @author         Jixun.Moe<Yellow Yoshi>
 // @namespace      http://jixun.org/
-// @version        3.0.357
+// @version        3.0.363
 
 // 全局匹配
 // @include *
@@ -786,7 +786,7 @@ H.log ('脚本版本 [ %s ] , 如果发现脚本问题请提交到 [ %s ] 谢谢
   name: '网易音乐下载解析',
   host: 'music.163.com',
   noSubHost: true,
-  noFrame: true,
+  noFrame: false,
   dl_icon: true,
   css: /* Resource: com.163.music.dl.css */
 H.extract(function () { /*
@@ -846,8 +846,34 @@ H.extract(function () { /*
       });
     });
   },
+  _doRemoval: function() {
+    H.waitUntil('nm.x.mK', function() {
+      unsafeExec(function(bIsFrame) {
+        var _bK;
+        _bK = nej.e.bK;
+        nej.e.bK = function(z, name) {
+          if (name === 'copyright' || name === 'resCopyright') {
+            return 1;
+          }
+          return _bK.apply(this, arguments);
+        };
+        nm.x.mK = function() {
+          return false;
+        };
+        if (bIsFrame && nm.m.c.xB.prototype.zB) {
+          nm.m.c.xB.prototype.zB = function() {
+            return true;
+          };
+        }
+      }, H.isFrame);
+    }, 7000, 500);
+  },
   onBody: function() {
     var getUri;
+    this._doRemoval();
+    if (H.isFrame) {
+      return;
+    }
     getUri = (function(_this) {
       return function(song) {
         return _this.getUri(song);
@@ -897,7 +923,7 @@ H.extract(function () { /*
         unsafeExec(function(scriptName) {
           var _bakPlayerUpdateUI;
           _bakPlayerUpdateUI = nm.m.f.xr.prototype.Al;
-          return nm.m.f.xr.prototype.Al = function(songObj) {
+          nm.m.f.xr.prototype.Al = function(songObj) {
             var eveSongObj;
             eveSongObj = {
               artist: songObj.artists.map(function(artist) {
@@ -909,7 +935,7 @@ H.extract(function () { /*
             document.dispatchEvent(new CustomEvent(scriptName, {
               detail: eveSongObj
             }));
-            _bakPlayerUpdateUI.apply(this, arguments);
+            return _bakPlayerUpdateUI.apply(this, arguments);
           };
         }, H.scriptName);
         document.addEventListener(H.scriptName, function(e) {
@@ -1787,7 +1813,7 @@ H.extract(function () { /*
 /* Compiled from com.qq.y.js */
 {
 	name: 'QQ 音乐下载解析',
-	host: 'y.qq.com',
+	host: ['y.qq.com', 'soso.music.qq.com'],
 	noSubHost: true,
 
 	css: /* Resource: com.qq.y.dl.css */
@@ -1858,7 +1884,45 @@ H.extract(function () { /*
 					title: '下载: ' + songObj.name
 				});
 			}, false);
-		});
+		}, 7000, 500);
+
+		H.waitUntil ('MUSIC.widget.trackServ.formatMusic', function () {
+			unsafeExec(function () {
+				var _formatMusic = MUSIC.widget.trackServ.formatMusic;
+				MUSIC.widget.trackServ.formatMusic = function () {
+					var _music = _formatMusic.apply(this, arguments);
+
+					_music.mstatus = parseInt(_music.mstatus) || 1;
+
+					_music.msize = _music.msize || 1;
+					_music.minterval = _music.minterval || 1;
+
+					if (_music.msongurl) {
+						var _pre;
+						if (_music.size320) {
+							_pre = 'M800';
+						} else if (_music.size128) {
+							_pre = 'M500';
+						}
+
+						if (_pre) {
+							_music.msongurl = 'http://stream' + (parseInt(_music.mstream) + 10) +
+												'.qqmusic.qq.com/' + _pre + _music.mmid + '.mp3';
+						}
+					}
+
+					return _music;
+				};
+
+				var getVip = g_user.getVipInfo;
+				g_user.getVipInfo = function (successCb, failCb) {
+					return g_user.getVipInfo (function (info) {
+						if (1 != info.vip) info.vip = 1;
+						if (successCb) successCb (info);
+					}, failCb);
+				};
+			});
+		}, 7000, 500);
 	}
 },
 /* Compiled from com.rayfile.js */
