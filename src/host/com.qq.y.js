@@ -1,6 +1,6 @@
 {
 	name: 'QQ 音乐下载解析',
-	host: 'y.qq.com',
+	host: ['y.qq.com', 'soso.music.qq.com'],
 	noSubHost: true,
 
 	css: <% ~com.qq.y.dl.css %>,
@@ -51,6 +51,44 @@
 					title: '下载: ' + songObj.name
 				});
 			}, false);
-		});
+		}, 7000, 500);
+
+		H.waitUntil ('MUSIC.widget.trackServ.formatMusic', function () {
+			unsafeExec(function () {
+				var _formatMusic = MUSIC.widget.trackServ.formatMusic;
+				MUSIC.widget.trackServ.formatMusic = function () {
+					var _music = _formatMusic.apply(this, arguments);
+
+					_music.mstatus = parseInt(_music.mstatus) || 1;
+
+					_music.msize = _music.msize || 1;
+					_music.minterval = _music.minterval || 1;
+
+					if (_music.msongurl) {
+						var _pre;
+						if (_music.size320) {
+							_pre = 'M800';
+						} else if (_music.size128) {
+							_pre = 'M500';
+						}
+
+						if (_pre) {
+							_music.msongurl = 'http://stream' + (parseInt(_music.mstream) + 10) +
+												'.qqmusic.qq.com/' + _pre + _music.mmid + '.mp3';
+						}
+					}
+
+					return _music;
+				};
+
+				var getVip = g_user.getVipInfo;
+				g_user.getVipInfo = function (successCb, failCb) {
+					return g_user.getVipInfo (function (info) {
+						if (1 != info.vip) info.vip = 1;
+						if (successCb) successCb (info);
+					}, failCb);
+				};
+			});
+		}, 7000, 500);
 	}
 }
