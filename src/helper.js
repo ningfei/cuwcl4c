@@ -75,6 +75,14 @@ var H = {
 		return str.indexOf (what) != -1;
 	},
 
+	addDownload: function (url, file) {
+		if (H.config.dUriType == 2) {
+			H.addToAria(url, file);
+		} else {
+			GM_openInTab (H.uri(url, file), true);
+		}
+	},
+
 	uri: function (url, filename, ref) {
 		switch (H.config.dUriType) {
 			case 1:
@@ -156,6 +164,7 @@ var H = {
 
 			if (linkEl && linkEl.tagName == 'A' && H.beginWith(linkEl.href, 'aria2://|')) {
 				e.stopPropagation ();
+				e.preventDefault  ();
 
 				var link = linkEl.href.split('|');
 				H.addToAria(link[1], decodeURIComponent(link[2]), link[3], linkEl.classList.contains('aria-cookie'));
@@ -247,13 +256,13 @@ H.merge (H, {
 H.config = H.merge ({
 	bDiaplayLog: true,
 
-	dUriType: 0,
+	dUriType:   0,
 	dAria_auth: 0,
 
 	sAria_user: '',
 	sAria_pass: '',
-	sAria_host: null,
-	dAria_port: 0,
+	sAria_host: '127.0.0.1',
+	dAria_port: 6800,
 	sAria_dir: 'D:\\Download\\',
 
 	bUseCustomRules: false,
