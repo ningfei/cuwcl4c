@@ -3218,4 +3218,8 @@ return function (event) {
 			H.error ('请务必将下述错误追踪代码提交至 %s\n\n%s', H.reportUrl, e.message);
 		}
 	}
+<<<<<<< HEAD
 }) ();
+=======
+}) ();
+>>>>>>> 5cb77bbd61c7318455bdd69e25b0a66e20459db9
