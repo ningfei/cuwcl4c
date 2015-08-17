@@ -10,6 +10,8 @@
 
 订阅 ABP 规则屏蔽广告: [Simple List](https://jixunmoe.github.io/SimpleList/)
 
+\*\* 跳过短链接等待请使用 [Ads Bypasser](https://greasyfork.org/scripts/4881)，或 [Ads Bypasser Lite](https://greasyfork.org/scripts/4882) (该版去掉了图床网站支援) \*\*
+
 ## 特色功能
 
 ### 快速下载文件
@@ -33,8 +35,10 @@
 - 百度盘免下载管家 - `[yun.baidu.com, pan.baidu.com]`
 - 暴雪盘 - `[bx0635.com]`
 - 可乐盘 - `[colafile.com]`
-- 城通网盘系列 - `[400gb.com, ctdisk.com, pipipan.com, bego.cc]`
+- 城通网盘系列 - `[ 400gb.com, ctdisk.com, pipipan.com, bego.cc, ctfile.com, t00y.com ]`
+- 大连生活网 - `[dlkoo.com]`
 - 好盘 - `[howfile.com]`
+- 乐盘自动下载地址 - `[www.lepan.cc, www.sx566.com]`
 - 飞速网 - `[rayfile.com]`
 - 速度盘 - `[sudupan.com]`
 - 威盘 - `[vdisk.cn]`
@@ -50,6 +54,7 @@
 - 9酷音乐 - `[www.9ku.com]`
 - 百度音乐 - `[music.baidu.com]`
 - 百度音乐盒 - `[play.baidu.com]`
+- 音乐云下载 - `[yinyueyun.baidu.com]`
 - DJCC 舞曲 - `[www.djcc.com]`
 - DJ 嗨嗨 - `[www.djkk.com]`
 - DJ 爷爷网 - `[www.djye.com]`
@@ -61,8 +66,8 @@
 - SongTaste 下载解析 - `[songtaste.com]`
 - 虾米音乐 - `[www.xiami.com]`
 - 音悦台下载解析 - `[yinyuetai.com]`
-- 通用 phpDisk.a 网盘规则 - `[ 79pan.com, 7mv.cc, pan.52zz.org, 258pan.com, huimeiku.com, wpan.cc, lepan.cc, sx566.com ]`
-- 通用 phpDisk.z 网盘规则 - `[ azpan.com, gxdisk.com, 2kuai.com, 1wp.me, 77pan.cc, vvpan.com, fmdisk.com, bx0635.com ]`
+- 通用 phpDisk.a 网盘规则 - `[ 79pan.com, 7mv.cc, pan.52zz.org, 258pan.com, huimeiku.com, wpan.cc ]`
+- 通用 phpDisk.z 网盘规则 - `[ azpan.com, gxdisk.com, 2kuai.com, 1wp.me, 77pan.cc, vvpan.com, fmdisk.com, bx0635.com, 10pan.cc ]`
 
 测试于 Chrome & Firefox 32 (GreasyMonkey 2.2)
 

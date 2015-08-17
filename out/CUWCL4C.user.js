@@ -24,12 +24,12 @@
 ////               Based on [Crack Url Wait Code Login] By Yulei
 
 // 骑牛的会请求不存在的 jquery.map 文件，改用官网的
-// @require        http://code.jquery.com/jquery-2.1.1.min.js
+// @require        https://code.jquery.com/jquery-2.1.4.min.js
 
 /// CryptoJS 相关库
-// @require        http://cdn.staticfile.org/crypto-js/3.1.2/components/core-min.js
-// @require        http://cdn.staticfile.org/crypto-js/3.1.2/components/enc-base64-min.js
-// @require        http://cdn.staticfile.org/crypto-js/3.1.2/components/md5-min.js
+// @require        https://cdn.bootcss.com/crypto-js/3.1.2/components/core-min.js
+// @require        https://cdn.bootcss.com/crypto-js/3.1.2/components/enc-base64-min.js
+// @require        https://cdn.bootcss.com/crypto-js/3.1.2/components/md5-min.js
 // @require        https://greasyfork.org/scripts/6696/code/CryptoJS-ByteArray.js
 
 /// 非同步枚举
@@ -43,11 +43,19 @@
 
 // @author         Jixun.Moe<Yellow Yoshi>
 // @namespace      http://jixun.org/
-// @version        3.0.390
+// @version        3.0.436
 
 // 全局匹配
 // @include *
+
+// 扔掉百度的广告框架页面
 // @exclude http://pos.baidu.com/*
+
+// 扔掉谷歌
+// @exclude http://gmail.com/*
+// @exclude http://.google.tld/*
+// @exclude http://*.gmail.com/*
+// @exclude http://*.google.tld/*
 // ==/UserScript==
 
 
@@ -542,7 +550,7 @@ H.merge (H, {
 			try {
 				fCallback.call(this);
 			} catch (e) {
-				H.error ('[H.waitUntil] Callback for %s had an error: %s', ver, e.message);
+				H.error ('[H.waitUntil] Callback for %s had an error: %s', H.version, e.message);
 			}
 		}, nTimeInterval || 150);
 
@@ -635,29 +643,16 @@ H.merge (H, {
 	},
 	reDirWithRef: function (targetUrl) {
 		if (!targetUrl) return ;
-
 		H.info ('Redirect to %s...', targetUrl);
-		var GET = H.parseQueryString(targetUrl),
-			form = $('<form>')
-				.attr('action', targetUrl.replace(/\?.*$/, ''))
-				.text('正在跳转: ' + targetUrl).prependTo(document.body)
-				.css ({fontSize: 12});
-
-		if (Object.keys(GET).length == 0) {
-			// POST when there's no param?
-			// form.attr ('method', 'POST');
-		} else {
-			for (var g in GET)
-				if (GET.hasOwnProperty(g))
-					form.append($('<input>').attr({
-						name: g,
-						type: 'hidden'
-					}).val(GET[g]));
-
-		}
-
-		form.submit();
-		return 1;
+		
+		var link = $('<a>')
+			.attr('href', targetUrl)
+			.text('正在跳转 [' + targetUrl + '], 请稍后.. ')
+			.prependTo(document.body)
+			.css ({fontSize: 12, color: 'inherit'});
+		
+		link[0].click();
+		return true;
 	},
 
 	// 网盘地址自动导向 [基于 phpDisk 的网盘]
@@ -893,29 +888,95 @@ H.log ('脚本版本 [ %s ] , 如果发现脚本问题请提交到 [ %s ] 谢谢
 {
 	id: 'dl.ctdisk',
 	name: '城通网盘系列',
-	host: ['400gb.com', 'ctdisk.com', 'pipipan.com', 'bego.cc'],
-	hide: ['.captcha', '.kk_xshow', 'div.span6:first-child'],
+	host: [
+		'400gb.com', 'ctdisk.com', 'pipipan.com', 'bego.cc',
+		'ctfile.com', 't00y.com'
+	],
+	path: '/file/',
+	hide: ['.captcha', '.kk_xshow', 'div.span6:first-child', '#top > .alert'],
 
 	onBody: function () {
 		// Fix Anti-ABP as it doesn't check the code.
-		H.waitUntil ('guestviewchkform', null, function (that) {
-			return that.randcode && that.randcode.value.length == 4;
+		H.waitUntil ('guestviewchkform', function () {
+			unsafeExec(function () {
+				window.guestviewchkform = function (form) {
+					return form.randcode && form.randcode.value.length == 4;
+				};
+			});
 		});
+
+		var keyForm = document.user_form;
+		var $kf = $(keyForm);
 		
 		try {
-			document.user_form.hash_key.value = H.base64Decode(document.user_form.hash_info.value);
+			keyForm.hash_key.value = H.base64Decode(keyForm.hash_info.value);
 		} catch (e) {
-			H.info ('缺失或无效的 hash_key 属性值, 跳过…')
+			H.info ('缺失或无效的 hash_key 属性值, 跳过…');
 		}
+
+		$kf.attr('action', $kf.attr('action').replace(/(V)\d/i, '$12'));
+
 		$('.captcha_right').css('float', 'left');
 		
+		/* 城通现在的验证码是混合数字、字母
 		$('#vfcode:first').parent()
 			.append(H.createNumPad(4, $('#randcode')[0], function () {
-				document.user_form.submit();
+				$kf.submit();
 				return true;
 			}));
+		*/
+
+		$('#page_content')
+			.attr('id', '^_^')
+			.val('cproIframeu12581302|httpubmcmmbaidustaticcomcpromediasmallpng');
 
 		H.log ('城通就绪.');
+	}
+},
+/* Compiled from dl.dlkoo.js */
+{
+	id: 'dl.dlkoo',
+	name: '大连生活网',
+	example: 'http://www.dlkoo.com/down/6/2011/222686754.html',
+	host: ['dlkoo.com'],
+	path: '/down/downfile.asp',
+
+	onStart: function () {
+		document.write = null;
+
+		Object.defineProperty(unsafeWindow, 'navigator', {
+			set: function () {},
+			get: function () {
+				return null;
+			}
+		});
+	},
+
+	onBody: function () {
+		var firstEl = document.body.children[0];
+		if (!firstEl) firstEl = document.body;
+
+		var firstTxt = firstEl.textContent;
+		if (H.beginWith(firstTxt, '防盗链提示') || H.beginWith(firstTxt, '验证码')) {
+			H.reDirWithRef(location.href);
+			return ;
+		} else if (H.beginWith(firstTxt, '防刷新')) {
+			firstEl.style.whiteSpace = 'pre';
+			firstEl.textContent += '\n\n请稍后, 5秒后自动刷新…';
+			setTimeout(H.reDirWithRef, 5500, location.href);
+			return ;
+		}
+
+		var btnDl = document.getElementById('btsubmit');
+		if (btnDl) {
+			btnDl.id = null;
+			btnDl.value = '开始下载';
+			btnDl.disabled = false;
+
+			var fakeBtn = document.createElement('input');
+			fakeBtn.id = 'btsubmit';
+			$(fakeBtn).hide().appendTo('body');
+		}
 	}
 },
 /* Compiled from dl.howfile.js */
@@ -926,6 +987,27 @@ H.log ('脚本版本 [ %s ] , 如果发现脚本问题请提交到 [ %s ] 谢谢
 	
 	hide: ['#floatdiv div', '.row1_right'],
 	css : '#floatdiv { top: 150px; z-index: 99999; display: block !important; }'
+},
+/* Compiled from dl.lepan.cc.js */
+{
+	id: 'cc.lepan',
+	name: '乐盘自动下载地址',
+	host: ['www.lepan.cc', 'www.sx566.com'],
+	noSubHost: true,
+	show: '#down_box',
+	hide: ['.widget-box', 'a[href="vip.php"]'],
+	onStart: function () {
+		// 破坏广告
+		Object.defineProperty(unsafeWindow, 'google', {
+			set: function () { },
+			get: function () { throw new Error(); }
+		});
+		
+		H.rule.exec('phpdisk.z', 'onStart');
+	},
+	onBody: function () {
+		$('#down_box .widget-box').removeClass('widget-box');
+	}
 },
 /* Compiled from dl.rayfile.js */
 {
@@ -1242,10 +1324,11 @@ H.extract(function () { /*
 }
 */}),
   onStart: function() {
+    this.regPlayer();
     return unsafeExec(function() {
       var fakePlatForm;
       fakePlatForm = navigator.platform + "--Fake-mac";
-      return Object.defineProperty(navigator, "platform", {
+      Object.defineProperty(navigator, "platform", {
         get: function() {
           return fakePlatForm;
         },
@@ -1253,41 +1336,127 @@ H.extract(function () { /*
           return null;
         }
       });
+      return window.GRestrictive = false;
     });
   },
   _doRemoval: function() {
-    H.waitUntil('nm.x.mK', function() {
-      unsafeExec(function(bIsFrame) {
-        var _bK;
-        _bK = nej.e.bK;
-        nej.e.bK = function(z, name) {
-          if (name === 'copyright' || name === 'resCopyright') {
-            return 1;
-          }
-          return _bK.apply(this, arguments);
-        };
-        nm.x.mK = function() {
-          return false;
-        };
-        if (bIsFrame && nm.m.c.xB.prototype.zB) {
-          nm.m.c.xB.prototype.zB = function() {
-            return true;
-          };
+    return H.waitUntil('nm.x', (function(_this) {
+      return function() {
+        var hook1, hook2;
+        hook1 = _this.searchFunction(unsafeWindow.nej.e, 'nej.e', '.dataset;if');
+        hook2 = _this.searchFunction(unsafeWindow.nm.x, 'nm.x', '.copyrightId==');
+        return H.waitUntil('nm.x.' + hook2, function() {
+          return unsafeExec(function(bIsFrame, hook1, hook2) {
+            var _bK;
+            _bK = nej.e[hook1];
+            nej.e[hook1] = function(z, name) {
+              if (name === 'copyright' || name === 'resCopyright') {
+                return 1;
+              }
+              return _bK.apply(this, arguments);
+            };
+            return nm.x[hook2] = function() {
+              return false;
+            };
+          }, H.isFrame, hook1, hook2);
+        }, 7000, 500);
+      };
+    })(this));
+  },
+  searchFunction: function(base, name, key) {
+    var baseName, fn, fnStr;
+    for (baseName in base) {
+      fn = base[baseName];
+      if (fn && typeof fn === 'function') {
+        fnStr = String(fn);
+        if (fnStr.indexOf(key) !== -1) {
+          H.info('Search %s, found: %s.%s', key, name, baseName);
+          return baseName;
         }
-      }, H.isFrame);
-    }, 7000, 500);
+      }
+    }
+    H.info('Search %s, found nothing.', key);
+    return null;
+  },
+  regPlayer: function() {
+    return document.addEventListener(H.scriptName, (function(_this) {
+      return function(e) {
+        var songObj;
+        songObj = e.detail;
+        return _this.linkDownload.attr({
+          href: H.uri(_this.getUri(JSON.parse(songObj.song)), "" + songObj.name + " [" + songObj.artist + "].mp3"),
+          title: '下载: ' + songObj.name
+        });
+      };
+    })(this));
+  },
+  hookPlayer: function() {
+    H.waitUntil('nm.m.f', (function(_this) {
+      return function() {
+        var baseName, clsFn, playerHooks, protoName, _ref;
+        playerHooks = null;
+        _ref = unsafeWindow.nm.m.f;
+        for (baseName in _ref) {
+          clsFn = _ref[baseName];
+          protoName = _this.searchFunction(clsFn.prototype, "nm.m.f." + baseName, '<em>00:00</em>');
+          if (protoName) {
+            playerHooks = [baseName, protoName];
+            break;
+          }
+        }
+        unsafeExec(function(scriptName, playerHooks) {
+          var _bakPlayerUpdateUI;
+          _bakPlayerUpdateUI = nm.m.f[playerHooks[0]].prototype[playerHooks[1]];
+          nm.m.f[playerHooks[0]].prototype[playerHooks[1]] = function(songObj) {
+            var eveSongObj;
+            eveSongObj = {
+              artist: songObj.artists.map(function(artist) {
+                return artist.name;
+              }).join('、'),
+              name: songObj.name,
+              song: JSON.stringify(songObj)
+            };
+            document.dispatchEvent(new CustomEvent(scriptName, {
+              detail: eveSongObj
+            }));
+            return _bakPlayerUpdateUI.apply(this, arguments);
+          };
+        }, H.scriptName, playerHooks);
+      };
+    })(this));
+  },
+  hookPlayerFm: function() {
+    return H.waitUntil('nm.m.fO', (function(_this) {
+      return function() {
+        var hook;
+        hook = _this.searchFunction(unsafeWindow.nm.m.fO.prototype, 'nm.x', '.mp3Url,true');
+        _this.linkDownload = $('<a>').prependTo('.opts.f-cb>.f-fr').addClass('icon icon-next').html('&nbsp;').css('transform', 'rotate(90deg)');
+        unsafeExec(function(scriptName, hook) {
+          var _bakPlaySong;
+          _bakPlaySong = nm.m.fO.prototype[hook];
+          nm.m.fO.prototype[hook] = function(songObj) {
+            var eveSongObj;
+            eveSongObj = {
+              artist: songObj.artists.map(function(artist) {
+                return artist.name;
+              }).join('、'),
+              name: songObj.name,
+              song: JSON.stringify(songObj)
+            };
+            document.dispatchEvent(new CustomEvent(scriptName, {
+              detail: eveSongObj
+            }));
+            return _bakPlaySong.apply(this, arguments);
+          };
+        }, H.scriptName, hook);
+      };
+    })(this));
   },
   onBody: function() {
-    var getUri;
     this._doRemoval();
     if (H.isFrame) {
       return;
     }
-    getUri = (function(_this) {
-      return function(song) {
-        return _this.getUri(song);
-      };
-    })(this);
     this.linkDownload = $('<a>').addClass(H.defaultDlIcon).appendTo($('.m-playbar .oper')).attr({
       title: '播放音乐, 即刻解析'
     }).click(function(e) {
@@ -1303,8 +1472,8 @@ H.extract(function () { /*
           _ref = JSON.parse(trackQueue);
           for (i in _ref) {
             track = _ref[i];
-            aria2.add(Aria2.fn.addUri, [getUri(track)], H.buildAriaParam({
-              out: "" + track.name + " [" + (track.artists.map(function(artist) {
+            aria2.add(Aria2.fn.addUri, [_this.getUri(track)], H.buildAriaParam({
+              out: "" + i + ". " + track.name + " [" + (track.artists.map(function(artist) {
                 return artist.name;
               }).join('、')) + "].mp3"
             }));
@@ -1327,36 +1496,11 @@ H.extract(function () { /*
         _this.linkDownloadAll.insertBefore($('.m-playbar .listhdc .addall')).after($('<a>').addClass('line jx_dl_line'));
       };
     })(this), true, 500);
-    H.waitUntil('nm.m.f.xr.prototype.Al', (function(_this) {
-      return function() {
-        unsafeExec(function(scriptName) {
-          var _bakPlayerUpdateUI;
-          _bakPlayerUpdateUI = nm.m.f.xr.prototype.Al;
-          nm.m.f.xr.prototype.Al = function(songObj) {
-            var eveSongObj;
-            eveSongObj = {
-              artist: songObj.artists.map(function(artist) {
-                return artist.name;
-              }).join('、'),
-              name: songObj.name,
-              song: JSON.stringify(songObj)
-            };
-            document.dispatchEvent(new CustomEvent(scriptName, {
-              detail: eveSongObj
-            }));
-            return _bakPlayerUpdateUI.apply(this, arguments);
-          };
-        }, H.scriptName);
-        document.addEventListener(H.scriptName, function(e) {
-          var songObj;
-          songObj = e.detail;
-          _this.linkDownload.attr({
-            href: H.uri(getUri(JSON.parse(songObj.song)), "" + songObj.name + " [" + songObj.artist + "].mp3"),
-            title: '下载: ' + songObj.name
-          });
-        });
-      };
-    })(this));
+    if (location.pathname === '/demo/fm') {
+      return this.hookPlayerFm();
+    } else {
+      return this.hookPlayer();
+    }
   },
   dfsHash: (function() {
     var strToKeyCodes;
@@ -1377,7 +1521,7 @@ H.extract(function () { /*
   getUri: function(song) {
     var dsfId, randServer;
     dsfId = (song.hMusic || song.mMusic || song.lMusic).dfsId;
-    randServer = Math.floor(Math.random() * 4) + 1;
+    randServer = Math.floor(Math.random() * 2) + 1;
     return "http://m" + randServer + ".music.126.net/" + (this.dfsHash(dsfId)) + "/" + dsfId + ".mp3";
   }
 }),
@@ -1588,6 +1732,7 @@ H.extract(function () { /*
 	id: 'music.baidu',
 	name: '百度音乐',
 	host: 'music.baidu.com',
+	noSubHost: true,
 	path: /^\/song\/\d+\/download/,
 
 	hide: '.foreign-tip',
@@ -1644,7 +1789,7 @@ H.extract(function () { /*
 
 	onBody: function () {
 		var self = this;
-		this.parser = H.rule.find ('music.baidu.play');
+		this.parser = H.rule.get ('music.baidu.play');
 		if (!this.parser) {
 			H.error ('Required rule `music.baidu.play` missing, please re-install this script.');
 			return ;
@@ -1746,7 +1891,16 @@ H.extract(function () { /*
 	 */
 	ERROR: {
 		'22232': {
-			text: '请挂上*大陆*马甲, 因其它地区访问被屏蔽.\n\n如果您会使用相关插件, 请加入下述地址至规则:  \nhttp://music.baidu.com/data/user/collect?*  \n\n您可以按下 Ctrl+C 拷贝该消息.',
+			text: H.extract(function () {/*
+请挂上*大陆*马甲, 因其它地区访问被屏蔽.
+
+如果您会使用相关插件, 请加入下述地址至规则:  
+http://music.baidu.com/data/user/collect?*  
+
+您可以按下 Ctrl+C 拷贝该消息.
+
+相关阅读: https://github.com/JixunMoe/cuwcl4c/wiki/配合大陆代理实现访问解除封锁
+*/}),
 			level: 'error',
 			alert: true
 		},
@@ -1843,7 +1997,7 @@ H.extract(function () { /*
 							artistName: e.artistName,
 							songId:     e.songId,
 							isFlac:     !!isFlac,
-							inFav:      !!e.hasCollected
+							isFav:      !!e.hasCollected
 						};
 					});
 
@@ -2024,7 +2178,7 @@ H.extract(function () { /*
 
 			var isFav = errInfo.code === 22000;
 			var qRemoveFav = $.Deferred();
-			qRemoveFav.success(isFav ? H.nop : function () {
+			qRemoveFav.done(isFav ? H.nop : function () {
 				H.info ('移除为解析而临时添加的歌曲… %s', songId);
 				self._rmFav(songId);
 			});
@@ -2111,7 +2265,7 @@ H.extract(function () { /*
 				if (cbRemoveFav)
 					cbRemoveFav ();
 
-				H.addDownload (self._renameUrl(url), file);
+				H.addDownload (self._renameUrl(url, file), file);
 				next ();
 			});
 		});
@@ -2127,6 +2281,31 @@ H.extract(function () { /*
 		var $q = this.$q;
 
 		$q.add.apply($q, arrSongs);
+	}
+},
+/* Compiled from music.baidu.yinyueyun.js */
+{
+	id: 'music.baidu.yinyueyun',
+	name: '音乐云下载',
+	host: 'yinyueyun.baidu.com',
+	noSubHost: true,
+	path: '/',
+
+	onStart: function () {
+		H.waitUntil('userModel.set', function () {
+			unsafeExec(function (scriptName, hookBatch) {
+				var bakUserSetInfo = userModel.set;
+				userModel.set = function (key, val, opts) {
+					if (key === 'userInfo' && val) {
+						val.vip = val.golden = true;
+					}
+					return bakUserSetInfo.apply(userModel, arguments);
+				};
+				
+				// Force update user data via hook
+				userModel.set('userInfo', userModel.get('userInfo'));
+			});
+		});
 	}
 },
 /* Compiled from music.djcc.js */
@@ -2956,7 +3135,7 @@ H.extract(function () { /*
 	
 	host: [
 		'79pan.com', '7mv.cc', 'pan.52zz.org', '258pan.com',
-		'huimeiku.com', 'wpan.cc', 'lepan.cc', 'sx566.com'
+		'huimeiku.com', 'wpan.cc'
 	],
 
 	hide: ['#code_box', '#down_box2', '#codefrm', '.ad', '[class^="banner"]'],
@@ -2998,7 +3177,8 @@ H.extract(function () { /*
 	
 	host: [
 		'azpan.com', 'gxdisk.com', '2kuai.com', '1wp.me', 
-		'77pan.cc', 'vvpan.com', 'fmdisk.com', 'bx0635.com'
+		'77pan.cc', 'vvpan.com', 'fmdisk.com', 'bx0635.com',
+		'10pan.cc'
 	],
 	hide: [
 		// azpan, gxdisk
@@ -3057,17 +3237,8 @@ H.rule = {
 			|| false
 		);
 	},
-
-	run: function (site, event) {
-		var eve = site[event];
-
-		var hostMatch;
-
-
-		if (site._styleApplied)
-			// 修正 CSS 可能被覆盖的错误
-			H.fixStyleOrder (site.styleBlock);
-
+	
+	check: function (site, eve) {
 		for (var i = 5; i--; ) {
 			if (typeof eve == 'string') {
 				eve = site[eve];
@@ -3081,7 +3252,7 @@ H.rule = {
 			eve = null;
 			return ;
 		}
-
+		
 		// Make this to an array.
 		if (typeof site.host == 'string')
 			site.host = [ site.host ];
@@ -3091,8 +3262,10 @@ H.rule = {
 			H.error ('RULE: key `host` is missing!');
 			return ;
 		}
-
+		
+		
 		// 检查域名
+		var hostMatch;
 		if (!H.contains (site.host, H.lowerHost)) {
 			// 是否检查子域名?
 			if (site.noSubHost)
@@ -3109,11 +3282,24 @@ H.rule = {
 			// No matching host name
 			if (!hostMatch) return;
 		}
-
+		
 		// 检查路径
 		if (site.path && !this.checkPath(location.pathname, site.path)) {
 			return ;
 		}
+		
+		return true;
+	},
+
+	run: function (site, event) {
+		if (!site || !event)
+			return ;
+		
+		var eve = site[event];
+
+		if (site._styleApplied)
+			// 修正 CSS 可能被覆盖的错误
+			H.fixStyleOrder (site.styleBlock);
 
 		if (!site._styleApplied) {
 			site._styleApplied = true;
@@ -3149,7 +3335,7 @@ H.rule = {
 H.extract(function () { /*
 @font-face {
 	font-family: ccc;
-	src: url(http://cdn.staticfile.org/font-awesome/4.2.0/fonts/fontawesome-webfont.woff) format('woff');
+	src: url(https://cdn.bootcss.com/font-awesome/4.2.0/fonts/fontawesome-webfont.woff) format('woff');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -3176,12 +3362,16 @@ H.extract(function () { /*
 	},
 
 	/**
-	 * Find rule by ID
+	 * get rule by ID
 	 * @param  {String} id Rule id
 	 * @return {Rule}      Rule Object
 	 */
-	find: function (id) {
+	get: function (id) {
 		return sites.filter(function (site) { return site.id == id; }).pop();
+	},
+	
+	exec: function (id, event) {
+		return this.run(this.get(id), event);
 	}
 };
 
@@ -3190,7 +3380,7 @@ return function (event) {
 		if (H.isFrame && sites[i].noFrame)
 			continue;
 		
-		if (H.rule.run(sites[i], event))
+		if (H.rule.check(sites[i], event) && H.rule.run(sites[i], event))
 			return true;
 	}
 };
